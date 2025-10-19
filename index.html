@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>Ni là số 1</title>
-    <meta name="description" content="Trang quà tặng 20/10 dành cho Ngày Phụ nữ Việt Nam: mở hộp quà, đọc thư yêu thương và xem ảnh quà kèm nhạc nền.">
+    <meta name="description" content="Ni là số 1.">
     <!-- Open Graph for Facebook -->
-    <meta property="og:title" content="Quà 20/10 - Ngày Phụ nữ Việt Nam">
-    <meta property="og:description" content="Mở hộp quà, đọc thư yêu thương và xem ảnh quà kèm nhạc nền. Chúc mừng Ngày Phụ nữ Việt Nam 20/10!">
+    <meta property="og:title" content="Ni là số 1">
+    <meta property="og:description" content="T.Ngân mãi đĩnh mãi đỉnh">
     <meta property="og:type" content="website">
     <meta property="og:url" content="index.html">
     <meta property="og:image" content="giftimage.png">
-    <meta property="og:image:alt" content="Quà 20/10 - Ngày Phụ nữ Việt Nam">
+    <meta property="og:image:alt" content="Ni là số 1">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Quà 20/10 - Ngày Phụ nữ Việt Nam">
-    <meta name="twitter:description" content="Mở hộp quà, đọc thư yêu thương và xem ảnh quà kèm nhạc nền.">
+    <meta name="twitter:title" content="Ni là số 1">
+    <meta name="twitter:description" content="Ni là số 1.">
     <meta name="twitter:image" content="giftimage.png">
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&display=swap" rel="stylesheet">
         <!-- Thêm các thư viện phục vụ scene phong thư -->
@@ -621,7 +621,7 @@
                 <div class="before"></div>
             </div>
         </div>
-        <audio id="bgm" src="./mucsic/music.mp3" preload="auto" loop></audio>
+        <audio id="bgm" src="./mucsic/music.mp3" preload="auto" loop playsinline webkit-playsinline></audio>
     </div>
     <!-- Lớp phủ hiển thị ảnh quà -->
     <div id="giftOverlay">
@@ -675,6 +675,28 @@
         captionImage: 'T.Ngân mãi đỉnh, mãi đỉnh! 🌹'
       };
 
+      // Tự động bật nhạc khi trang web mở
+      document.addEventListener('DOMContentLoaded', function() {
+          const bgm = document.getElementById('bgm');
+          if (bgm) {
+              bgm.volume = 0.6;
+              bgm.setAttribute('playsinline', '');
+              bgm.setAttribute('webkit-playsinline', '');
+              
+              // Thử phát nhạc tự động
+              bgm.play().catch(() => {
+                  // Nếu không được, chờ tương tác người dùng
+                  const playOnClick = () => {
+                      bgm.play();
+                      document.removeEventListener('click', playOnClick);
+                      document.removeEventListener('touchstart', playOnClick);
+                  };
+                  document.addEventListener('click', playOnClick, { once: true });
+                  document.addEventListener('touchstart', playOnClick, { once: true });
+              });
+          }
+      });
+
       (function(){
         const pageLoader = document.getElementById('pageLoader');
         function showLoader(){ pageLoader && pageLoader.classList.add('show'); document.body.classList.remove('is-loaded'); }
@@ -716,40 +738,27 @@
         }, 1500); // Giả lập thời gian tải 1.5 giây
       })();
 
-      // Kích hoạt trạng thái đã tải để chạy animation vào trang và nhịp tim
-      // Đã được xử lý trong phần mock data ở trên, không cần thêm logic ở đây
-      // Mở nắp hộp khi click (bỏ confetti)
-      (function(){
-        const box = document.getElementById('giftBox');
-        if(!box) return;
-
-        let opened = false;
-
-        function openBox(){
-          if(opened) return;
-          opened = true;
-          box.classList.add('open');
-          // Phát nhạc ngay khi bấm vào hộp quà (theo tương tác người dùng)
-          (function(){
-            var bgm = document.getElementById('bgm');
-            if(bgm){
-              try{ bgm.volume = 0.6; bgm.play().catch(function(){}); }catch(e){}
-            }
-          })();
-          // Sau 1 giây, ẩn toàn bộ UI trừ hình nền
-          setTimeout(function(){
-            document.body.classList.add('hide-ui');
-            // Hiển thị scene phong thư
-            const scene = document.getElementById('letterScene');
-            if(scene){ scene.style.display = 'block'; }
-            // Khởi chạy hiệu ứng SVG và logic thư, nhạc nền
-            initLetterScene();
-          }, 1000);
-        }
-        box.addEventListener('click', openBox, { passive: true });
-        box.addEventListener('pointerdown', openBox, { passive: true });
-        box.addEventListener('touchstart', openBox, { passive: true });
-      })();
+      // Cập nhật hàm mở hộp quà để đảm bảo nhạc luôn phát
+      const box = document.getElementById('giftBox');
+      if(box) {
+          let opened = false;
+          box.addEventListener('click', function() {
+              if(opened) return;
+              opened = true;
+              this.classList.add('open');
+              
+              // Phát nhạc khi mở hộp
+              const bgm = document.getElementById('bgm');
+              if(bgm) bgm.play().catch(() => {});
+              
+              setTimeout(() => {
+                  document.body.classList.add('hide-ui');
+                  const scene = document.getElementById('letterScene');
+                  if(scene) scene.style.display = 'block';
+                  initLetterScene();
+              }, 1000);
+          });
+      }
 
       // Ngăn pinch-zoom, double-tap zoom, wheel zoom trên mobile
       (function(){
@@ -927,7 +936,6 @@
               if((window.textLetterH2||'') && (window.textLetterP||'')){
                 funcTimeoutLetter();
               }
-              // Không phát nhạc ở đây nữa; nhạc đã phát khi bấm hộp quà
             });
             // Ẩn hiện nút mũi tên theo trường image
             const hasImage = !!(document.querySelector('#giftOverlay > img')?.getAttribute('src') || '').trim();
@@ -1010,6 +1018,5 @@
     </script>
     <!-- Thư viện dùng cho scene thư -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
-    <audio id="bgm" src="./mucsic/music.mp3" preload="auto" loop></audio>
 </body>
 </html>
